@@ -10,7 +10,7 @@ class JogoVelha:
         self.screen = TabuleiroScreen()
         self.tabuleiro = Tabuleiro()
         
-        #Jogadores
+       
         self.jogadores = [
                 JogadorIA(self.tabuleiro, Tabuleiro.JOGADOR_0),
                 JogadorHumano(self.tabuleiro, self.screen.buttons, Tabuleiro.JOGADOR_X)
@@ -29,40 +29,42 @@ class JogoVelha:
     
     
     def acabou_jogo(self):    
-        if(self.tabuleiro.tem_campeao() == Tabuleiro.JOGADOR_X):
+        campeao = self.tabuleiro.tem_campeao()
+
+        if campeao == Tabuleiro.JOGADOR_X:
             self.screen.resultado_txt = "X vencedor!"
             return True
-            
-        if(self.tabuleiro.tem_campeao() == Tabuleiro.JOGADOR_0):
-            self.screen.resultado_txt = "0 vencedor!"
+
+        if campeao == Tabuleiro.JOGADOR_0:
+            self.screen.resultado_txt = "O vencedor!"
             return True
-        
+
         return False
+
                               
 
     def start(self):
         acabou_jogo = False
-        contador = 0
-        
+        contador = 0  
+
         while True:
             x, y = self.jogador_corrente.getJogada()
             self.screen.update_text_button(x, y, self.jogador_corrente.tipo)
             self.tabuleiro.matriz[x][y] = self.jogador_corrente.tipo
-                                
-            contador = contador + 1
-            
+
+            contador += 1
             acabou_jogo = self.acabou_jogo()
-                                
-            if (acabou_jogo == False) and (contador == 9):
+
+            if not acabou_jogo and contador == 9:  
                 self.screen.resultado_txt = "Deu velha!"
                 acabou_jogo = True
-            
+
             self.screen.desenha_tabuleiro()
-            
-            
-            if(acabou_jogo == True):
+
+            if acabou_jogo:
                 break
-            
+
             self.troca_jogador()
-            
+
+                
            

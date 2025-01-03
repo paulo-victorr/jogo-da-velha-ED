@@ -36,7 +36,6 @@ class Button(pygame.sprite.Sprite):
         self.screen.blit(self.text_render, (self.x, self.y))
         return True
         
- 
     def update(self):
         self.fg, self.bg = self.colors.split(" on ")
         pygame.draw.rect(self.screen, self.bg, (self.x, self.y, self.w , self.h))

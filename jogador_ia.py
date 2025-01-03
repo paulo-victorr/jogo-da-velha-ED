@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from random import randint
+
+from jogador import Jogador
 from tabuleiro import Tabuleiro
 
 class JogadorIA(Jogador):
@@ -7,79 +9,88 @@ class JogadorIA(Jogador):
         super().__init__(tabuleiro, tipo)
 
     def getJogada(self) -> (int, int):
+        
+        for l in range(3):
+            for c in range(3):
+               
+                if self._verificar_sequencia(l, c, self.tipo) or self._verificar_sequencia(l, c, Tabuleiro.JOGADOR_0 if self.tipo == Tabuleiro.JOGADOR_X else Tabuleiro.JOGADOR_X):
+                    return (l, c)
 
-        jogada = self.regra_1(Tabuleiro.JOGADOR_X)  
-        if jogada:
-            return jogada
-        jogada = self.regra_1(Tabuleiro.JOGADOR_0)  
-        if jogada:
-            return jogada
+        
+        for l in range(3):
+            for c in range(3):
+                if self._cria_duas_sequencias(l, c):
+                    return (l, c)
 
-        jogada = self.regra_2()
-        if jogada:
-            return jogada
-
+       
         if self.matriz[1][1] == Tabuleiro.DESCONHECIDO:
             return (1, 1)
 
-        jogada = self.regra_4()
-        if jogada:
-            return jogada
+     
+        cantos = [(0, 0), (0, 2), (2, 0), (2, 2)]
+        for canto in cantos:
+            oposto = (2 - canto[0], 2 - canto[1])
+            if self.matriz[canto[0]][canto[1]] != Tabuleiro.DESCONHECIDO and self.matriz[oposto[0]][oposto[1]] == Tabuleiro.DESCONHECIDO:
+                return oposto
 
-        jogada = self.regra_5()
-        if jogada:
-            return jogada
+      
+        for canto in cantos:
+            if self.matriz[canto[0]][canto[1]] == Tabuleiro.DESCONHECIDO:
+                return canto
 
-        return self.regra_6()
-
-    def regra_1(self, jogador):
+      
         for l in range(3):
             for c in range(3):
                 if self.matriz[l][c] == Tabuleiro.DESCONHECIDO:
-                    if self.verifica_sequencia(l, c, jogador):
-                        return (l, c)
-        return None
+                    return (l, c)
 
-    def verifica_sequencia(self, l, c, jogador):
-        if self.matriz[l][(c + 1) % 3] == jogador and self.matriz[l][(c + 2) % 3] == jogador:
+        return None  
+
+    def _verificar_sequencia(self, l, c, tipo) -> bool:
+       
+        if self.matriz[l][c] != Tabuleiro.DESCONHECIDO:
+            return False
+
+       
+        if sum(1 for x in range(3) if self.matriz[l][x] == tipo) == 2:
             return True
-        if self.matriz[(l + 1) % 3][c] == jogador and self.matriz[(l + 2) % 3][c] == jogador:
+
+        
+        if sum(1 for x in range(3) if self.matriz[x][c] == tipo) == 2:
             return True
-        if l == c and self.matriz[(l + 1) % 3][(c + 1) % 3] == jogador and self.matriz[(l + 2) % 3][(c + 2) % 3] == jogador:
+
+      
+        if l == c and sum(1 for x in range(3) if self.matriz[x][x] == tipo) == 2:
             return True
+
+        
+        if l + c == 2 and sum(1 for x in range(3) if self.matriz[x][2 - x] == tipo) == 2:
+            return True
+
         return False
 
-    def regra_2(self):
-        for l in range(3):
-            for c in range(3):
-                if self.matriz[l][c] == Tabuleiro.DESCONHECIDO:
-                    if self.cria_duas_sequencias(l, c):
-                        return (l, c)
-        return None
+    def _cria_duas_sequencias(self, l, c) -> bool:
+       
+        if self.matriz[l][c] != Tabuleiro.DESCONHECIDO:
+            return False
 
-    def cria_duas_sequencias(self, l, c):
-        return False  
+       
+        self.matriz[l][c] = self.tipo
+        count = 0
 
-    def regra_4(self):
-        cantos = [(0, 0), (0, 2), (2, 0), (2, 2)]
-        opostos = [(2, 2), (2, 0), (0, 2), (0, 0)]
-        for i, (l, c) in enumerate(cantos):
-            if self.matriz[l][c] == Tabuleiro.JOGADOR_0 and self.matriz[opostos[i][0]][opostos[i][1]] == Tabuleiro.DESCONHECIDO:
-                return opostos[i]
-        return None
+       
+        for i in range(3):
+            if sum(1 for x in range(3) if self.matriz[i][x] == self.tipo) == 2:
+                count += 1
+            if sum(1 for x in range(3) if self.matriz[x][i] == self.tipo) == 2:
+                count += 1
 
-    def regra_5(self):
-        cantos = [(0, 0), (0, 2), (2, 0), (2, 2)]
-        for (l, c) in cantos:
-            if self.matriz[l][c] == Tabuleiro.DESCONHECIDO:
-                return (l, c)
-        return None
+        if sum(1 for x in range(3) if self.matriz[x][x] == self.tipo) == 2:
+            count += 1
+        if sum(1 for x in range(3) if self.matriz[x][2 - x] == self.tipo) == 2:
+            count += 1
 
-    def regra_6(self):
-        
-        lista = []
-        for l in range(3):
-            for c in range(3):
-                if self.matriz[l][c] == Tabuleiro.DESCONHECIDO:
-                    lista.append((l, c))
-        return lista[randint(0, len(lista)-1)]
+       
+        self.matriz[l][c] = Tabuleiro.DESCONHECIDO
+
+        return count >= 2
